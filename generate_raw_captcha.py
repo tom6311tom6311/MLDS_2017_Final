@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import argparse
 import nltk
@@ -49,3 +50,5 @@ if __name__ == "__main__":
 					words_gen.append(word)
 		phrase = ' '.join(words_gen)
 		captchaGen.generateImage(phrase, args.num_gen, args.output, str(i))
+		print('Generating Progress: ' + "%.2f" % (float(i) / args.num * 100) + "%")
+		sys.stdout.write("\033[F")
