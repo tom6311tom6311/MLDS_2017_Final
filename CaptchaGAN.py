@@ -1,7 +1,13 @@
 import CapsGANModel
 import Preproccessor
 import numpy as np
+import matplotlib
+
+# disable display setting
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
+
 
 NOISE_DIM = 100
 NUM_CHK_SAMPLES = 16
