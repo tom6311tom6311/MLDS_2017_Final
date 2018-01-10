@@ -6,7 +6,7 @@ import CaptchaGenerator
 import numpy as np
 from nltk.corpus import words
 
-nltk.download('words')
+#nltk.download('words')
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description="Raw Captcha Image Generator")
@@ -18,6 +18,10 @@ if __name__ == "__main__":
 			help="Number of words each phrase")
 	parser.add_argument('--len_word', default=5, type=int,
 			help="Length of each word")
+	parser.add_argument('--width', default=-1, type=int,
+			help="Image width, suggested to be #total_words * 15")
+	parser.add_argument('--height', default=60, type=int,
+			help="Image height, default is 60px")
 	parser.add_argument('--num_gen', default=5, type=int,
 			help="Number of generations each phrase")
 	parser.add_argument('--output', default='raw/', type=str,
@@ -28,7 +32,10 @@ if __name__ == "__main__":
 		shutil.rmtree(args.output)
 	os.makedirs(args.output)
 
-	captchaGen = CaptchaGenerator.CaptchaGenerator()
+	if args.width == -1:
+		args.width = max(args.num_word * args.len_word * 15, 60)
+
+	captchaGen = CaptchaGenerator.CaptchaGenerator(width=args.width, height=args.height)
 
 	for i in range(args.num):
 		if args.type == 'digit':
