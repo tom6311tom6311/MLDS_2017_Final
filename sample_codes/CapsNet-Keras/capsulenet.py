@@ -209,12 +209,12 @@ def load_captcha():
 	preproccessor = Preproccessor.Preprocessor([28,28,3])
 
 	x, y = preproccessor.loadData()
-	y = y.astype('float32')
+	y = to_categorical(y.astype('float32'))
 
 	indices = np.random.permutation(x.shape[0])
 	train_idx, test_idx = indices[:-100], indices[-100:]
 	x_train, x_test = x[train_idx,:,:,:], x[test_idx,:,:,:]
-	y_train, y_test = y[train_idx,:,:,:], y[test_idx,:,:,:]
+	y_train, y_test = y[train_idx,:], y[test_idx,:]
 
 	return (x_train, y_train), (x_test, y_test)
 
