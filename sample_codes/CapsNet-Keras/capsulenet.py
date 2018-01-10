@@ -21,6 +21,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import argparse
+import Preproccessor
 from keras.backend import tensorflow_backend as KTF
 from keras import layers, models, optimizers, callbacks
 from keras.utils import to_categorical
@@ -204,6 +205,18 @@ def manipulate_latent(model, data, args):
 	print('manipulated result saved to %s/manipulate-%d.png' % (args.save_dir, args.digit))
 	print('-' * 30 + 'End: manipulate' + '-' * 30)
 
+def load_captcha():
+	preproccessor = Preproccessor.Preprocessor([28,28,3])
+
+	x, y = preproccessor.loadData()
+	y = y.astype('float32')
+
+	indices = numpy.random.permutation(x.shape[0])
+	train_idx, test_idx = indices[:-100], indices[-100:]
+	x_train, x_test = x[train_idx,:,:,:], x[test_idx,:,:,:]
+	y_train, y_test = y[train_idx,:,:,:], y[test_idx,:,:,:]
+
+	return (x_train, y_train), (x_test, y_test)
 
 def load_mnist():
 	# the data, shuffled and split between train and test sets

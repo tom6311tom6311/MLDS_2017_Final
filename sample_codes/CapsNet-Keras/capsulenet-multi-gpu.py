@@ -23,7 +23,7 @@ from keras import optimizers, callbacks
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils.vis_utils import plot_model
 from keras.utils import multi_gpu_model
-from capsulenet import CapsNet, margin_loss, load_mnist, manipulate_latent, test
+from capsulenet import CapsNet, margin_loss, load_captcha, load_mnist, manipulate_latent, test
 from utils import plot_log
 
 DISABLE_GPU = False
@@ -38,6 +38,9 @@ else:
 	KTF.set_session(tf.Session(config=GPU_CONFIG))
 
 # K.set_image_data_format('channels_last')
+
+# can be 'captcha' or 'mnist'
+DATA_SOURCE = 'captcha'
 
 print('Devices:')
 print(KTF.get_session().list_devices())
@@ -121,7 +124,7 @@ if __name__ == "__main__":
 		os.makedirs(args.save_dir)
 
 	# load data
-	(x_train, y_train), (x_test, y_test) = load_mnist()
+	(x_train, y_train), (x_test, y_test) = load_captcha() if DATA_SOURCE == 'captcha' else load_mnist()
 
 	# define model
 	with tf.device('/cpu:0'):
