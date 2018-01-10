@@ -253,7 +253,7 @@ import ElapsedTimer
 if __name__ == '__main__':
 	captcha_gan = CaptchaGAN.CaptchaGAN(image_shape=[60,60,3])
 	timer = ElapsedTimer.ElapsedTimer()
-	captcha_gan.train(train_steps=10000, batch_size=256, save_interval=500)
+	captcha_gan.train(train_steps=100, batch_size=256, save_interval=10)
 	timer.elapsedTime()
 	captcha_gan.plot_images(fake=True)
 	captcha_gan.plot_images(fake=False, save2file=True)

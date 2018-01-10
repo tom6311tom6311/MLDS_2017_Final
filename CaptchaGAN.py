@@ -1,3 +1,5 @@
+import os
+import shutil
 import CapsGANModel
 import Preproccessor
 import numpy as np
@@ -11,6 +13,7 @@ import matplotlib.pyplot as plt
 
 NOISE_DIM = 100
 NUM_CHK_SAMPLES = 16
+OURPUT_IMG_DIR = 'output/'
 
 class CaptchaGAN(object):
 	def __init__(self, image_shape):
@@ -20,6 +23,10 @@ class CaptchaGAN(object):
 		self.discriminator =  self.CapsGANModel.discriminator_model()
 		self.adversarial = self.CapsGANModel.adversarial_model()
 		self.generator = self.CapsGANModel.generator()
+
+		if os.path.exists(OURPUT_IMG_DIR):
+			shutil.rmtree(OURPUT_IMG_DIR)
+		os.makedirs(OURPUT_IMG_DIR)
 
 	def train(self, train_steps=2000, batch_size=256, save_interval=0):
 		noise_input = None
@@ -53,7 +60,7 @@ class CaptchaGAN(object):
 			images = self.generator.predict(noise)
 		else:
 			filename = 'real.png'
-			images = self.Preproccessor.loadData(num_to_load=samples, shuffle=True)
+			images, _ = self.Preproccessor.loadData(num_to_load=samples, shuffle=True)
 
 		plt.figure(figsize=(10,10))
 		for i in range(samples):
@@ -64,7 +71,7 @@ class CaptchaGAN(object):
 			plt.axis('off')
 		plt.tight_layout()
 		if save2file:
-			plt.savefig(filename)
+			plt.savefig(OURPUT_IMG_DIR + filename)
 			plt.close('all')
 		else:
 			plt.show()
