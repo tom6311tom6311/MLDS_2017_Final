@@ -160,7 +160,7 @@ def train(model, data, args):
 	model.save_weights(args.save_dir + '/trained_model.h5')
 	print('Trained model saved to \'%s/trained_model.h5\'' % args.save_dir)
 
-	plot_log(args.save_dir + '/log.csv', show=True)
+	plot_log(args.save_dir + '/log.csv', show=False)
 
 	return model
 

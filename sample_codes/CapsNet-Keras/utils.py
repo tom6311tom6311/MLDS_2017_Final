@@ -1,7 +1,12 @@
 import numpy as np
-from matplotlib import pyplot as plt
 import csv
 import math
+import matplotlib
+
+# disable display setting
+matplotlib.use('Agg')
+
+import matplotlib.pyplot as plt
 
 def plot_log(filename, show=True):
     # load data
