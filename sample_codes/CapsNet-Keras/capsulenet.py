@@ -18,6 +18,11 @@ Author: Xifeng Guo, E-mail: `guoxifeng1990@163.com`, Github: `https://github.com
 
 import tensorflow as tf
 import numpy as np
+import matplotlib
+
+# disable display setting
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 import os
 import argparse
