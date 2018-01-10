@@ -19,7 +19,7 @@ class Preprocessor:
     with open(IMG_DIR + LABEL_FILE_NAME, 'r') as label_file:
       raw_labels = label_file.readlines()
       for raw_label in raw_labels:
-        [prefix,label] = raw_label.split(',')
+        [prefix,label] = raw_label[:-1].split(',')
         label_dict[prefix] = label
       label_file.close()
     return label_dict
