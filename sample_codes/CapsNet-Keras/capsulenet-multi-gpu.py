@@ -88,7 +88,7 @@ def train(model, data, args):
 			callbacks=[log, tb, lr_decay])
 	# End: Training with data augmentation -----------------------------------------------------------------------#
 
-	plot_log(args.save_dir + '/log.csv', show=True)
+	plot_log(args.save_dir + '/log.csv', show=False)
 
 	return model
 
