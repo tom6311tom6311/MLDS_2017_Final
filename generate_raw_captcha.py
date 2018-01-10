@@ -1,8 +1,12 @@
 import os
+import shutil
 import argparse
+import nltk
 import CaptchaGenerator
 import numpy as np
 from nltk.corpus import words
+
+nltk.download('words')
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description="Raw Captcha Image Generator")
@@ -16,12 +20,13 @@ if __name__ == "__main__":
 			help="Length of each word")
 	parser.add_argument('--num_gen', default=5, type=int,
 			help="Number of generations each phrase")
-	parser.add_argument('--output', default='.', type=str,
+	parser.add_argument('--output', default='raw/', type=str,
 			help="Output folder")
 	args = parser.parse_args()
 
-	if not os.path.exists(args.output):
-		os.makedirs(args.output)
+	if os.path.exists(args.output):
+		shutil.rmtree(args.output)
+	os.makedirs(args.output)
 
 	captchaGen = CaptchaGenerator.CaptchaGenerator()
 
