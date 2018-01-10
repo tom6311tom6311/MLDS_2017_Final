@@ -1,12 +1,25 @@
+import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten, Reshape
 from keras.layers import Conv2D, Conv2DTranspose, UpSampling2D
 from keras.layers import LeakyReLU, Dropout
 from keras.layers import BatchNormalization
 from keras.optimizers import Adam, RMSprop
+from keras.backend.tensorflow_backend import set_session
+
+DISABLE_GPU = False
+GPU_CONFIG = tf.ConfigProto(
+	gpu_options = tf.GPUOptions(allow_growth = True),
+	device_count = {'GPU': 1}
+)
 
 class CapsGANModel(object):
 	def __init__(self, image_shape=[60,60,3], noise_dim=100):
+		if DISABLE_GPU:
+			os.environ["CUDA_VISIBLE_DEVICES"]=""
+			set_session(tf.Session())
+		else:
+			set_session(tf.Session(config=GPU_CONFIG))
 		self.image_shape = image_shape
 		self.noise_dim = noise_dim
 		self.D = None   # discriminator
