@@ -16,5 +16,5 @@ def parse_args():
     parser.add_argument('--init_scale', type=float, default=1e-1)
     parser.add_argument('--img_width', type=int, default=28)
     parser.add_argument('--img_height', type=int, default=28)
-    parser.add_argument('--channel', type=int, default=1)
+    parser.add_argument('--channel', type=int, default=3)
     return parser.parse_args()

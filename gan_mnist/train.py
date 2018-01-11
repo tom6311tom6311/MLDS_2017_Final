@@ -29,7 +29,7 @@ def get_batch():
         return img, label
     else:
         img, txt_label = prep.loadData(args.batch_size, True)
-        label = to_categorical(txt_label.astype('float32'))
+        label = to_categorical(txt_label.astype('float32'), num_classes=10)
         return process_img(img), label
 
 def get_noise():

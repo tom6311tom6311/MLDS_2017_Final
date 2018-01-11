@@ -12,6 +12,8 @@ The images are named [n_epoch]_[condition].jpg
 python3 train.py
 ```
 
+Note that if you want to start over, you should remove the `./logs` and `./imgs` folder.
+
 * The GAN models are defined in `model.py`, currently there are vanilla GAN
 and DCGAN implementations. To switch models, just modify the import script.
 i.e. `from model import GAN` to `from model import DCGAN as GAN`
