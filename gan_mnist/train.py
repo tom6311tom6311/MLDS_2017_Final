@@ -6,19 +6,31 @@ from model import DCGAN as GAN
 import os
 from scipy import misc
 from tensorflow.examples.tutorials.mnist import input_data
+import Preproccessor
+from keras.utils import to_categorical
 
+LOAD_FROM_MNIST = False
 
 args = parse_args()
-mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+
+if LOAD_FROM_MNIST:
+    mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+else:
+    prep = Preproccessor.Preprocessor(image_shape=[args.img_width,args.img_height,3])
 
 def process_img(img):
     return (img-0.5)/0.5
 
 def get_batch():
-    img, label = mnist.train.next_batch(args.batch_size)
-    resized = np.reshape(img, [args.batch_size, 28, 28, 1])
-    resized = process_img(resized)
-    return resized, label
+    if LOAD_FROM_MNIST:
+        img, label = mnist.train.next_batch(args.batch_size)
+        resized = np.reshape(img, [args.batch_size, 28, 28, 1])
+        resized = process_img(resized)
+        return img, label
+    else:
+        img, txt_label = prep.loadData(args.batch_size, True)
+        label = to_categorical(txt_label.astype('float32'))
+        return process_img(img), label
 
 def get_noise():
     return np.random.uniform(-1., 1., [args.batch_size, args.noise_dim])
