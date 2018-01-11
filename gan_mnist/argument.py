@@ -14,5 +14,7 @@ def parse_args():
     parser.add_argument('--info_epoch', type=int, default=1000)
     parser.add_argument('--lr', type=float, default=1e-3)
     parser.add_argument('--init_scale', type=float, default=1e-1)
-
+    parser.add_argument('--img_width', type=int, default=28)
+    parser.add_argument('--img_height', type=int, default=28)
+    parser.add_argument('--channel', type=int, default=1)
     return parser.parse_args()
