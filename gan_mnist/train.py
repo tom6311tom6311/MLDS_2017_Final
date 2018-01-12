@@ -8,6 +8,7 @@ from scipy import misc
 from tensorflow.examples.tutorials.mnist import input_data
 import Preproccessor
 from keras.utils import to_categorical
+from utils import save_image_train
 
 LOAD_FROM_MNIST = False
 
@@ -81,4 +82,6 @@ if __name__ == '__main__':
                     print('G_loss:', G_loss_curr)
                     label = np.argmax(batch_feat[0])
                     filename = str(n_epoch)+'_'+str(label)+'.jpg'
-                    misc.imsave(os.path.join(args.save_img_dir, filename), fake_img[0, :, :, 0])
+                    misc.imsave(os.path.join(args.save_img_dir, filename), fake_img[0, :, :, :])
+                    save_image_train(n_epoch, fake_img, args, generated = True)
+                    save_image_train(n_epoch, batch_img, args, generated = False)
