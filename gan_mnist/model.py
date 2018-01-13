@@ -1,8 +1,9 @@
 import argparse
 import tensorflow as tf
+from capsLayer import CapsLayer
 
 
-def lrelu(x, th=0.01):
+def lrelu(x, th=0.2):
     return tf.maximum(th * x, x)
 
 class GAN:
@@ -10,14 +11,14 @@ class GAN:
         self.args = args
 
         self.isTrain = tf.placeholder(tf.bool)
-        self.feat_holder = tf.placeholder(tf.float32, [None, 10])
+        self.feat_holder = tf.placeholder(tf.float32, [self.args.batch_size, 10])
         with tf.variable_scope('gen'):
             self.noise_holder, self.fake_img = self.generator()
 
         with tf.variable_scope('dis'):
             self.img_holder = tf.placeholder(tf.float32,
-                            [None, self.args.img_width, self.args.img_height, self.args.channel])
-            self.random_feat_holder = tf.placeholder(tf.float32, [None, 10])
+                            [self.args.batch_size, self.args.img_width, self.args.img_height, self.args.channel])
+            self.random_feat_holder = tf.placeholder(tf.float32, [self.args.batch_size, 10])
             self.rr_logit =\
                 self.discriminator(self.img_holder, self.feat_holder, None)
 
@@ -63,7 +64,7 @@ class GAN:
 
 
     def generator(self):
-        noise_holder = tf.placeholder(tf.float32, [None, self.args.noise_dim])
+        noise_holder = tf.placeholder(tf.float32, [self.args.batch_size, self.args.noise_dim])
         concat = tf.concat([noise_holder, self.feat_holder], axis=1)
         dense1 = tf.layers.dense(concat, 128, activation=tf.nn.relu)
         fake_img = tf.layers.dense(dense1, self.args.img_width*self.args.img_height*self.args.channel,
@@ -111,6 +112,59 @@ class DCGAN(GAN):
         conv2 = tf.layers.conv2d(conv1, 16, 5, strides=(2, 2), padding='same', name='conv2')
 
         flat = tf.reshape(conv2, [-1, self.args.img_width*self.args.img_height])
+        concat_feat = tf.concat([flat, feat], axis=1)
+        dense2 = tf.layers.dense(concat_feat, self.args.img_width*self.args.img_height
+                                 , activation=lrelu, name='dense2')
+        feat_logits = tf.layers.dense(dense2, 1, name='feat_logits')
+
+        return feat_logits
+
+class DCCapsGAN(GAN):
+    def generator(self):
+        isTrain = self.isTrain
+        noise_holder = tf.placeholder(tf.float32, [None, self.args.noise_dim])
+        concat_feat = tf.concat([noise_holder, self.feat_holder], axis=1)
+        dense1 = tf.layers.dense(concat_feat, self.args.img_width*self.args.img_height*self.args.channel)
+        reshape_noise = tf.reshape(dense1, [-1, self.args.img_width//4, self.args.img_height//4,
+                                            self.args.channel*16])
+        lrelu0 = lrelu(tf.layers.batch_normalization(reshape_noise, training=isTrain))
+
+        conv1 = tf.layers.conv2d_transpose(lrelu0, 32, [5, 5], strides=(2, 2), padding='same')
+        lrelu1 = lrelu(tf.layers.batch_normalization(conv1, training=isTrain))
+
+        # 2nd hidden layer
+        conv2 = tf.layers.conv2d_transpose(lrelu1, self.args.channel, [5, 5], strides=(2, 2), padding='same')
+        o = tf.nn.tanh(conv2)
+        return noise_holder, o
+
+    def discriminator(self, input, feat, reuse):
+        if reuse:
+            tf.get_variable_scope().reuse_variables()
+
+        isTrain = self.isTrain
+        with tf.variable_scope('Conv1_layer'):
+            # Conv1, [batch_size, 20, 20, 256]
+            conv1 = tf.contrib.layers.conv2d(input, num_outputs=256,
+                                             kernel_size=9, stride=1,
+                                             padding='VALID')
+            #assert conv1.get_shape() == [cfg.batch_size, 20, 20, 256]
+
+        # 1st hidden layer
+        with tf.variable_scope('PrimaryCaps_layer'):
+            primaryCaps = CapsLayer(num_outputs=32, vec_len=8, with_routing=False, layer_type='CONV')
+            caps1 = primaryCaps(conv1, kernel_size=9, stride=2)
+            # assert caps1.get_shape() == [cfg.batch_size, 1152, 8, 1]
+        # 2nd hidden layer
+        with tf.variable_scope('DigitCaps_layer'):
+            digitCaps = CapsLayer(num_outputs=10, vec_len=16, with_routing=True, layer_type='FC')
+            caps2 = digitCaps(caps1)
+        flat = tf.reshape(caps2, [-1, 16*10])
+        '''
+        conv1 = tf.layers.conv2d(input, 32, 5, strides=(2, 2), padding='same', name='conv1')
+        lrelu1 = lrelu(conv1)
+        conv2 = tf.layers.conv2d(conv1, 16, 5, strides=(2, 2), padding='same', name='conv2')
+        flat = tf.reshape(conv2, [-1, self.args.img_width*self.args.img_height])
+        '''
         concat_feat = tf.concat([flat, feat], axis=1)
         dense2 = tf.layers.dense(concat_feat, self.args.img_width*self.args.img_height
                                  , activation=lrelu, name='dense2')
