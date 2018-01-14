@@ -1,12 +1,13 @@
+import os
+import shutil
+import random
+import Preproccessor
 import tensorflow as tf
 import numpy as np
-import random
 from argument import parse_args
 from model import DCGAN as GAN
-import os
 from scipy import misc
 from tensorflow.examples.tutorials.mnist import input_data
-import Preproccessor
 from keras.utils import to_categorical
 from utils import save_image_train
 
@@ -44,8 +45,16 @@ def get_random_feat():
     return random_feat
 
 if __name__ == '__main__':
+    if args.clean:
+        if os.path.exists(args.save_img_dir):
+            shutil.rmtree(args.save_img_dir)
+        if os.path.exists(args.log_dir):
+            shutil.rmtree(args.log_dir)
     if not os.path.exists(args.save_img_dir):
         os.mkdir(args.save_img_dir)
+    if not os.path.exists(args.log_dir):
+        os.mkdir(args.log_dir)
+
     with tf.Graph().as_default() as graph:
         initializer = tf.random_uniform_initializer(-args.init_scale, args.init_scale)
         with tf.variable_scope('model', reuse=None, initializer=initializer) as scope:
@@ -77,9 +86,7 @@ if __name__ == '__main__':
                                                                model.isTrain: True})
 
                 if (n_epoch % args.info_epoch == 0):
-                    print('n_epoch: ', n_epoch)
-                    print('D_loss:', D_loss_curr)
-                    print('G_loss:', G_loss_curr)
+                    print('%d: [n_epoch: %d, D_loss: %f, G_loss: %f]' % (n_epoch, D_loss_curr, G_loss_curr))
                     label = np.argmax(batch_feat[0])
                     filename = str(n_epoch)+'_'+str(label)+'.jpg'
                     misc.imsave(os.path.join(args.save_img_dir, filename), fake_img[0, :, :, :])
