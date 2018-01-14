@@ -9,7 +9,7 @@ from model import DCGAN as GAN
 from scipy import misc
 from tensorflow.examples.tutorials.mnist import input_data
 from keras.utils import to_categorical
-from utils import save_image_train
+from utils import save_image_train, save_image_train_by_digit
 
 LOAD_FROM_MNIST = False
 
@@ -78,6 +78,8 @@ if __name__ == '__main__':
 
         saver = sv.saver(max_to_keep=1000)
         with sv.managed_session(config=config) as sess:
+            save_noise = np.random.uniform(-1., 1., [10, args.noise_dim])
+            save_feat = to_categorical(np.arange(10), num_classes=10)
             for n_epoch in range(args.max_epoch):
                 batch_noise = get_noise()
                 batch_img, batch_feat = get_batch()
@@ -96,11 +98,16 @@ if __name__ == '__main__':
 
                 if (n_epoch % args.info_epoch == 0):
                     print('[n_epoch: %d, D_loss: %f, G_loss: %f]' % (n_epoch, D_loss_curr, G_loss_curr))
-                    label = np.argmax(batch_feat[0])
-                    filename = str(n_epoch)+'_'+str(label)+'.jpg'
-                    misc.imsave(os.path.join(args.save_img_dir, filename), fake_img[0, :, :, :])
-                    save_image_train(n_epoch, fake_img, args, generated = True)
-                    save_image_train(n_epoch, batch_img, args, generated = False)
+                    save_img = sess.run([model.fake_img], feed_dict={model.noise_holder: save_noise,
+                                                                model.feat_holder: save_feat,
+                                                                model.isTrain: False})
+                    save_image_train_by_digit(n_epoch, save_img, args, generated = True)
+                    # label = np.argmax(batch_feat[0])
+                    # filename = str(n_epoch)+'_'+str(label)+'.jpg'
+                    # misc.imsave(os.path.join(args.save_img_dir, filename), fake_img[0, :, :, :])
+                    # save_image_train(n_epoch, fake_img, args, generated = True)
+                    # save_image_train(n_epoch, batch_img, args, generated = False)
+
                     # save_path = saver.save(sess, args.log_dir+'/model_'+str(n_epoch)+'.ckpt')
                     # print("Model saved in file: %s" % save_path)
                     saver.save(sess, save_path=args.log_dir, global_step=n_epoch)

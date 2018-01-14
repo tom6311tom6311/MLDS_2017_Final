@@ -25,9 +25,28 @@ def plot(samples, filename):
 def save_image_train(epoch, image, args, generated = True):
     im_num = 8*8
     fig = plt.figure(figsize=(8, 8))
-    image = image/2. + 0.5
+    if args.prep:
+        image = image/2. + 0.5
     for i in range(im_num):
         ax = fig.add_subplot(im_num/8, 8, i+1)
+        ax.imshow(image[i, :, :, :].reshape(args.img_width,args.img_height,3))
+        plt.xticks(np.array([]))
+        plt.yticks(np.array([]))
+        plt.tight_layout()
+
+        if generated:
+            fig.savefig(args.save_img_dir + '/gen_epoch' + str(epoch) + '.jpg')
+        else:
+            fig.savefig(args.save_img_dir + '/real_epoch' + str(epoch) + '.jpg')
+
+    plt.close(fig)
+
+def save_image_train_by_digit(epoch, image, args, generated = True):
+    fig = plt.figure(figsize=(4, 3))
+    if args.prep:
+        image = image/2. + 0.5
+    for i in range(10):
+        ax = fig.add_subplot(4, 3, i+1)
         ax.imshow(image[i, :, :, :].reshape(args.img_width,args.img_height,3))
         plt.xticks(np.array([]))
         plt.yticks(np.array([]))
