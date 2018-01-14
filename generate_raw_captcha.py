@@ -42,12 +42,15 @@ if __name__ == "__main__":
 		if args.type == 'digit':
 			words_gen = map(str, np.random.choice(np.power(10,args.len_word), args.num_word))
 		else:
-			corpus = words.words()
-			words_gen = []
-			while len(words_gen) < args.num_word:
-				word = np.random.choice(corpus)
-				if len(word) <= args.len_word:
-					words_gen.append(word)
+			if args.len_word == 1:
+				words_gen = map(chr, np.random.choice(26, args.num_word)+65)
+			else:
+				corpus = words.words()
+				words_gen = []
+				while len(words_gen) < args.num_word:
+					word = np.random.choice(corpus)
+					if len(word) <= args.len_word:
+						words_gen.append(word)
 		phrase = ' '.join(words_gen)
 		captchaGen.generateImage(phrase, args.num_gen, args.output, str(i))
 		print('Generating Progress: ' + "%.2f" % (float(i) / args.num * 100) + "%")
