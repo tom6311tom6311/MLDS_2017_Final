@@ -21,7 +21,10 @@ else:
     prep = Preproccessor.Preprocessor(image_shape=[args.img_width,args.img_height,3])
 
 def process_img(img):
-    return (img-0.5)/0.5
+    if args.prep:
+        return (img-0.5)/0.5
+    else:
+        return img
 
 def get_batch():
     if LOAD_FROM_MNIST:
@@ -37,8 +40,10 @@ def get_batch():
 def get_noise():
     return np.random.uniform(-1., 1., [args.batch_size, args.noise_dim])
 
-def get_random_feat():
-    a = np.random.randint(0, 10, [args.batch_size])
+def get_random_feat(true_feat):
+    true_a = np.argmax(true_feat, axis=1)
+    a = np.random.randint(1, 10, [args.batch_size])
+    a = (true_a + a)%10
     random_feat = np.zeros([args.batch_size, 10])
     for i in range(args.batch_size):
         random_feat[i, a[i]] = 1
@@ -55,7 +60,10 @@ if __name__ == '__main__':
     if not os.path.exists(args.log_dir):
         os.mkdir(args.log_dir)
 
+
+
     with tf.Graph().as_default() as graph:
+        
         initializer = tf.random_uniform_initializer(-args.init_scale, args.init_scale)
         with tf.variable_scope('model', reuse=None, initializer=initializer) as scope:
             model = GAN(args)
@@ -68,6 +76,7 @@ if __name__ == '__main__':
         sv = tf.train.Supervisor(logdir=args.log_dir,
                              save_model_secs=args.save_model_secs)
 
+        saver = sv.saver(max_to_keep=1000)
         with sv.managed_session(config=config) as sess:
             for n_epoch in range(args.max_epoch):
                 batch_noise = get_noise()
@@ -86,9 +95,12 @@ if __name__ == '__main__':
                                                                model.isTrain: True})
 
                 if (n_epoch % args.info_epoch == 0):
-                    print('%d: [n_epoch: %d, D_loss: %f, G_loss: %f]' % (n_epoch, D_loss_curr, G_loss_curr))
+                    print('[n_epoch: %d, D_loss: %f, G_loss: %f]' % (n_epoch, D_loss_curr, G_loss_curr))
                     label = np.argmax(batch_feat[0])
                     filename = str(n_epoch)+'_'+str(label)+'.jpg'
                     misc.imsave(os.path.join(args.save_img_dir, filename), fake_img[0, :, :, :])
                     save_image_train(n_epoch, fake_img, args, generated = True)
                     save_image_train(n_epoch, batch_img, args, generated = False)
+                    # save_path = saver.save(sess, args.log_dir+'/model_'+str(n_epoch)+'.ckpt')
+                    # print("Model saved in file: %s" % save_path)
+                    saver.save(sess, save_path=args.log_dir, global_step=n_epoch)
