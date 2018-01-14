@@ -24,10 +24,10 @@ if __name__ == '__main__':
         saver.restore(sess, args.log_dir + '/model.ckpt')
 
         # manipulate latent
-        # mpdify from: https://github.com/XifengGuo/CapsNet-Keras/blob/master/capsulenet.py
-        feat = np.zeros([1, 10])
-        feat[0, args.digit] = 1
-        noise = np.zeros([1, args.noise_dim])
+        # modify from: https://github.com/XifengGuo/CapsNet-Keras/blob/master/capsulenet.py
+        feat = np.zeros([args.batch_size, 10])
+        feat[:, args.digit] = 1
+        noise = np.zeros([args.batch_size, args.noise_dim])
         dimension = range(0, args.noise_dim, int(args.noise_dim/10))
         x_recons = []
         for dim in list(dimension):
@@ -37,9 +37,10 @@ if __name__ == '__main__':
                 x_recon = sess.run([model.fake_img],feed_dict={model.noise_holder: tmp,
                                                                model.feat_holder: feat,
                                                                model.isTrain: False})
-                x_recons.append(x_recon)
-
-        x_recons = np.concatenate(x_recons)
+                x_recon = np.array(x_recon)
+                x_recon = np.reshape(x_recon, [args.batch_size, args.img_width, args.img_height, args.channel])
+                x_recons.append(x_recon[0, :, :, :])
+        x_recons = np.array(x_recons)
         x_recons = np.reshape(x_recons, [x_recons.shape[0], args.img_width,args.img_height,args.channel])
 
         img = combine_images(x_recons, height=10)

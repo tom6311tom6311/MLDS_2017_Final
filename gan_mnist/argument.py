@@ -7,7 +7,7 @@ def parse_args():
     parser.add_argument('--save_img_dir', type=str, default='./imgs')
     parser.add_argument('--save_model_secs', type=int, default=120)
     parser.add_argument('--clean', type=bool, default=False)
-    parser.add_argument('--prep', type=bool, default=True)
+    parser.add_argument('--prep', type=int, default=1)
 
     parser.add_argument('--noise_dim', type=int, default=10)
     parser.add_argument('--noise_amp', type=float, default=1.0)
@@ -19,6 +19,8 @@ def parse_args():
     parser.add_argument('--img_width', type=int, default=28)
     parser.add_argument('--img_height', type=int, default=28)
     parser.add_argument('--channel', type=int, default=3)
+    
+    parser.add_argument('--gpu', type=str, default='0')
 
     parser.add_argument('--save_manipulate_dir', type=str, default='./manipulate_imgs')
     parser.add_argument('--digit', type=int, default=5)

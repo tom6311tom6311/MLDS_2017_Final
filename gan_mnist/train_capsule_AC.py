@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import random
 from argument import parse_args
-from model import DCCapsGAN as CapsGAN
+from model import DCCapsACGAN as CapsACGAN
 import os
 from scipy import misc
 from tensorflow.examples.tutorials.mnist import input_data
@@ -11,10 +11,10 @@ from keras.utils import to_categorical
 from utils import save_image_train, save_image_train_by_digit
 
 import logging
+head = '%(asctime)-15s %(message)s'
+logging.basicConfig(level=logging.DEBUG, format=head)
 def myLog(msg, epoch = -1):
-    head = '%(asctime)-15s %(message)s'
-    logging.basicConfig(level=logging.DEBUG, format=head)
-    logging.log(level=logging.DEBUG, msg=('Epoch['+str(epoch)+'] '+str(msg)))
+        logging.log(level=logging.DEBUG, msg=('Epoch['+str(epoch)+'] '+str(msg)))
 
 LOAD_FROM_MNIST = False
 
@@ -62,23 +62,23 @@ if __name__ == '__main__':
     with tf.Graph().as_default() as graph:
         initializer = tf.random_uniform_initializer(-args.init_scale, args.init_scale)
         with tf.variable_scope('model_capsule', reuse=None, initializer=initializer) as scope:
-            model = CapsGAN(args)
+            model = CapsACGAN(args)
             scope.reuse_variables()
-
+ 
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         config.graph_options.optimizer_options.global_jit_level =\
         tf.OptimizerOptions.ON_1
         sv = tf.train.Supervisor(logdir=args.log_dir,
                              save_model_secs=args.save_model_secs)
-
         saver = sv.saver
+ 
         with sv.managed_session(config=config) as sess:
             save_noise = np.random.uniform(-1., 1., [10, args.noise_dim])
             save_feat = to_categorical(np.arange(10), num_classes=10)
             save_noise_fill = np.concatenate((save_noise, np.zeros((args.batch_size-10, args.noise_dim))), axis=0)
             save_feat_fill  = np.concatenate((save_feat,  np.zeros((args.batch_size-10, 10))), axis=0)
-            
+ 
             for n_epoch in range(args.max_epoch):
                 batch_noise = get_noise()
                 batch_img, batch_feat = get_batch()
@@ -89,15 +89,15 @@ if __name__ == '__main__':
                                                      model.img_holder: batch_img,
                                                      model.random_feat_holder: random_feat,
                                                      model.isTrain: True})
-
+ 
                 _, G_loss_curr, fake_img = sess.run([model.opt_gen, model.G_loss, model.fake_img],
                                                     feed_dict={model.noise_holder: batch_noise,
                                                                model.feat_holder: batch_feat,
                                                                model.isTrain: True})
-
+ 
                 if (n_epoch % 10 == 0):
                     print(n_epoch, 'D_loss:'+str(D_loss_curr)+' G_loss:'+str(G_loss_curr))
-
+ 
                 if (n_epoch % args.info_epoch == 0):
                     save_img_fill = sess.run([model.fake_img], feed_dict={model.noise_holder: save_noise_fill,
                                                                 model.feat_holder: save_feat_fill,
@@ -109,8 +109,8 @@ if __name__ == '__main__':
                     # misc.imsave(os.path.join(args.save_img_dir, filename), fake_img[0, :, :, :])
                     # save_image_train(n_epoch, fake_img, args, generated = True)
                     # save_image_train(n_epoch, batch_img, args, generated = False)
-                    
+ 
                     # save_path = saver.save(sess, args.log_dir+'/model_'+str(n_epoch)+'.ckpt')
-                    # print("Model saved in file: %s" % save_path)
-
+                    # myLog("Model saved in file: %s" % save_path)
+ 
                     saver.save(sess, save_path=args.log_dir, global_step=n_epoch)

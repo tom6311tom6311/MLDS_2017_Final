@@ -61,7 +61,6 @@ if __name__ == '__main__':
         os.mkdir(args.log_dir)
 
 
-
     with tf.Graph().as_default() as graph:
         
         initializer = tf.random_uniform_initializer(-args.init_scale, args.init_scale)
@@ -76,14 +75,18 @@ if __name__ == '__main__':
         sv = tf.train.Supervisor(logdir=args.log_dir,
                              save_model_secs=args.save_model_secs)
 
-        saver = sv.saver(max_to_keep=1000)
+        saver = sv.saver
+        saver._max_to_keep = 1000
         with sv.managed_session(config=config) as sess:
             save_noise = np.random.uniform(-1., 1., [10, args.noise_dim])
             save_feat = to_categorical(np.arange(10), num_classes=10)
+            save_noise_fill = np.concatenate((save_noise, np.zeros((args.batch_size-10, args.noise_dim))), axis=0)
+            save_feat_fill  = np.concatenate((save_feat,  np.zeros((args.batch_size-10, 10))), axis=0)
+            
             for n_epoch in range(args.max_epoch):
                 batch_noise = get_noise()
                 batch_img, batch_feat = get_batch()
-                random_feat = get_random_feat()
+                random_feat = get_random_feat(batch_feat)
                 _, D_loss_curr = sess.run([model.opt_dis, model.D_loss],
                                           feed_dict={model.noise_holder: batch_noise,
                                                      model.feat_holder: batch_feat,
@@ -98,9 +101,10 @@ if __name__ == '__main__':
 
                 if (n_epoch % args.info_epoch == 0):
                     print('[n_epoch: %d, D_loss: %f, G_loss: %f]' % (n_epoch, D_loss_curr, G_loss_curr))
-                    save_img = sess.run([model.fake_img], feed_dict={model.noise_holder: save_noise,
-                                                                model.feat_holder: save_feat,
+                    save_img_fill = sess.run([model.fake_img], feed_dict={model.noise_holder: save_noise_fill,
+                                                                model.feat_holder: save_feat_fill,
                                                                 model.isTrain: False})
+                    save_img = save_img_fill[0][0:10, :, :, :]
                     save_image_train_by_digit(n_epoch, save_img, args, generated = True)
                     # label = np.argmax(batch_feat[0])
                     # filename = str(n_epoch)+'_'+str(label)+'.jpg'
