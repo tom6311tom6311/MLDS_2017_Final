@@ -115,6 +115,8 @@ ENV/
 
 */video*
 
+/gan_char/img*
+/gan_char/log*
 /gan_mnist/img*
 /gan_mnist/log*
 /gan_mnist/MNIST*

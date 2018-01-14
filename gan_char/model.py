@@ -10,16 +10,17 @@ class GAN:
     def __init__(self, args):
         self.args = args
         self.act = tf.nn.tanh if args.prep else tf.nn.sigmoid
+        self.num_class = 26
 
         self.isTrain = tf.placeholder(tf.bool)
-        self.feat_holder = tf.placeholder(tf.float32, [self.args.batch_size, 10])
+        self.feat_holder = tf.placeholder(tf.float32, [self.args.batch_size, self.num_class])
         with tf.variable_scope('gen'):
             self.noise_holder, self.fake_img = self.generator()
 
         with tf.variable_scope('dis'):
             self.img_holder = tf.placeholder(tf.float32,
                             [self.args.batch_size, self.args.img_width, self.args.img_height, self.args.channel])
-            self.random_feat_holder = tf.placeholder(tf.float32, [self.args.batch_size, 10])
+            self.random_feat_holder = tf.placeholder(tf.float32, [self.args.batch_size, self.num_class])
             self.rr_logit =\
                 self.discriminator(self.img_holder, self.feat_holder, None)
 
@@ -157,14 +158,14 @@ class DCCapsGAN(GAN):
             # assert caps1.get_shape() == [cfg.batch_size, 1152, 8, 1]
         # 2nd hidden layer
         with tf.variable_scope('DigitCaps_layer'):
-            digitCaps = CapsLayer(num_outputs=10, vec_len=16, with_routing=True, layer_type='FC')
+            digitCaps = CapsLayer(num_outputs=self.num_class, vec_len=16, with_routing=True, layer_type='FC')
             caps2 = digitCaps(caps1)
-            # output shape = [cfg.batch_size, 10, 16, 1]
+            # output shape = [cfg.batch_size, self.num_class, 16, 1]
         
-        res_caps = tf.reshape(caps2, [-1, 10, 16])
-        res_feat = tf.reshape(feat, [-1, 1, 10])
+        res_caps = tf.reshape(caps2, [-1, self.num_class, 16])
+        res_feat = tf.reshape(feat, [-1, 1, self.num_class])
         res_flat = tf.matmul(res_feat, res_caps)
-        # flat = tf.reshape(caps2, [-1, 16*10])
+        # flat = tf.reshape(caps2, [-1, 16*self.num_class])
         flat = tf.reshape(res_flat, [-1, 16])
         '''
         conv1 = tf.layers.conv2d(input, 32, 5, strides=(2, 2), padding='same', name='conv1')
@@ -183,16 +184,17 @@ class ACGAN(object):
     def __init__(self, args):
         self.args = args
         self.act = tf.nn.tanh if args.prep else tf.nn.sigmoid
+        self.num_class = 26
 
         self.isTrain = tf.placeholder(tf.bool)
-        self.feat_holder = tf.placeholder(tf.float32, [self.args.batch_size, 10])
+        self.feat_holder = tf.placeholder(tf.float32, [self.args.batch_size, self.num_class])
         with tf.variable_scope('gen'):
             self.noise_holder, self.fake_img = self.generator()
 
         with tf.variable_scope('dis'):
             self.img_holder = tf.placeholder(tf.float32,
                             [self.args.batch_size, self.args.img_width, self.args.img_height, self.args.channel])
-            self.random_feat_holder = tf.placeholder(tf.float32, [self.args.batch_size, 10])
+            self.random_feat_holder = tf.placeholder(tf.float32, [self.args.batch_size, self.num_class])
             self.rr_logit, self.rr_class =\
                 self.discriminator(self.img_holder, self.feat_holder, None)
 
@@ -264,7 +266,6 @@ class ACGAN(object):
         if reuse:
             tf.get_variable_scope().reuse_variables()
 
-        print(input.get_shape())
         isTrain = self.isTrain
         # 1st hidden layer
         conv1 = tf.layers.conv2d(input, 32, 5, strides=(2, 2), padding='same', name='conv1')
@@ -273,7 +274,7 @@ class ACGAN(object):
         conv2 = tf.layers.conv2d(conv1, 16, 5, strides=(2, 2), padding='same', name='conv2')
 
         flat = tf.reshape(conv2, [-1, self.args.img_width*self.args.img_height])
-        dense1 = tf.layers.dense(flat, 10, name='dense1')
+        dense1 = tf.layers.dense(flat, self.num_class, name='dense1')
         concat_feat = tf.concat([flat, feat], axis=1)
         dense2 = tf.layers.dense(concat_feat, self.args.img_width*self.args.img_height
                                  , activation=lrelu, name='dense2')
@@ -285,16 +286,17 @@ class DCCapsACGAN(object):
     def __init__(self, args):
         self.args = args
         self.act = tf.nn.tanh if args.prep else tf.nn.sigmoid
+        self.num_class = 26
 
         self.isTrain = tf.placeholder(tf.bool)
-        self.feat_holder = tf.placeholder(tf.float32, [self.args.batch_size, 10])
+        self.feat_holder = tf.placeholder(tf.float32, [self.args.batch_size, self.num_class])
         with tf.variable_scope('gen'):
             self.noise_holder, self.fake_img = self.generator()
 
         with tf.variable_scope('dis'):
             self.img_holder = tf.placeholder(tf.float32,
                             [self.args.batch_size, self.args.img_width, self.args.img_height, self.args.channel])
-            self.random_feat_holder = tf.placeholder(tf.float32, [self.args.batch_size, 10])
+            self.random_feat_holder = tf.placeholder(tf.float32, [self.args.batch_size, self.num_class])
             self.rr_logit, self.rr_class =\
                 self.discriminator(self.img_holder, self.feat_holder, None)
 
@@ -381,15 +383,15 @@ class DCCapsACGAN(object):
             # assert caps1.get_shape() == [cfg.batch_size, 1152, 8, 1]
         # 2nd hidden layer
         with tf.variable_scope('DigitCaps_layer'):
-            digitCaps = CapsLayer(num_outputs=10, vec_len=16, with_routing=True, layer_type='FC')
+            digitCaps = CapsLayer(num_outputs=self.num_class, vec_len=16, with_routing=True, layer_type='FC')
             caps2 = digitCaps(caps1)
-            # output shape = [cfg.batch_size, 10, 16, 1]
+            # output shape = [cfg.batch_size, self.num_class, 16, 1]
         
         caps_length = tf.sqrt(tf.reduce_sum(tf.square(caps2), axis=2, keep_dims=True) + 1e-9)
-        flat_caps_length = tf.reshape(caps_length, [-1, 10])
+        flat_caps_length = tf.reshape(caps_length, [-1, self.num_class])
 
-        res_caps = tf.reshape(caps2, [-1, 10, 16])
-        res_feat = tf.reshape(feat, [-1, 1, 10])
+        res_caps = tf.reshape(caps2, [-1, self.num_class, 16])
+        res_feat = tf.reshape(feat, [-1, 1, self.num_class])
         res_flat = tf.matmul(res_feat, res_caps)
         flat = tf.reshape(res_flat, [-1, 16])
         feat_logits = tf.layers.dense(flat, 1, name='feat_logits')

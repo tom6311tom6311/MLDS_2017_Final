@@ -14,8 +14,6 @@ if __name__ == '__main__':
     if not os.path.exists(args.save_manipulate_dir):
         os.mkdir(args.save_manipulate_dir)
 
-    #with tf.variable_scope('model') as scope:
-    #    model = GAN(args)
     with tf.variable_scope('model_capsule') as scope:
         model = CapsACGAN(args)
 
@@ -28,7 +26,7 @@ if __name__ == '__main__':
 
         # manipulate latent
         # modify from: https://github.com/XifengGuo/CapsNet-Keras/blob/master/capsulenet.py
-        feat = np.zeros([args.batch_size, 10])
+        feat = np.zeros([args.batch_size, 26])
         feat[:, args.digit] = 1
         noise = np.zeros([args.batch_size, args.noise_dim])
         dimension = range(0, args.noise_dim, int(args.noise_dim/10))

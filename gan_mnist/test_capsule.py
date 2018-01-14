@@ -79,38 +79,9 @@ if __name__ == '__main__':
             save_noise_fill = np.concatenate((save_noise, np.zeros((args.batch_size-10, args.noise_dim))), axis=0)
             save_feat_fill  = np.concatenate((save_feat,  np.zeros((args.batch_size-10, 10))), axis=0)
             
-            for n_epoch in range(args.max_epoch):
-                batch_noise = get_noise()
-                batch_img, batch_feat = get_batch()
-                random_feat = get_random_feat(batch_feat)
-                _, D_loss_curr = sess.run([model.opt_dis, model.D_loss],
-                                          feed_dict={model.noise_holder: batch_noise,
-                                                     model.feat_holder: batch_feat,
-                                                     model.img_holder: batch_img,
-                                                     model.random_feat_holder: random_feat,
-                                                     model.isTrain: (args.train_bn==1)})
+            save_img_fill = sess.run([model.fake_img], feed_dict={model.noise_holder: save_noise_fill,
+                                                        model.feat_holder: save_feat_fill,
+                                                        model.isTrain: True})
+            save_img = save_img_fill[0][0:10, :, :, :]
+            save_image_train_by_digit('_test', save_img, args, generated = True)
 
-                _, G_loss_curr, fake_img = sess.run([model.opt_gen, model.G_loss, model.fake_img],
-                                                    feed_dict={model.noise_holder: batch_noise,
-                                                               model.feat_holder: batch_feat,
-                                                               model.isTrain: (args.train_bn==1)})
-
-                if (n_epoch % 10 == 0):
-                    print(n_epoch, 'D_loss:'+str(D_loss_curr)+' G_loss:'+str(G_loss_curr))
-
-                if (n_epoch % args.info_epoch == 0):
-                    save_img_fill = sess.run([model.fake_img], feed_dict={model.noise_holder: save_noise_fill,
-                                                                model.feat_holder: save_feat_fill,
-                                                                model.isTrain: (args.test_bn==1)})
-                    save_img = save_img_fill[0][0:10, :, :, :]
-                    save_image_train_by_digit(n_epoch, save_img, args, generated = True)
-                    # label = np.argmax(batch_feat[0])
-                    # filename = str(n_epoch)+'_'+str(label)+'.jpg'
-                    # misc.imsave(os.path.join(args.save_img_dir, filename), fake_img[0, :, :, :])
-                    # save_image_train(n_epoch, fake_img, args, generated = True)
-                    # save_image_train(n_epoch, batch_img, args, generated = False)
-                    
-                    # save_path = saver.save(sess, args.log_dir+'/model_'+str(n_epoch)+'.ckpt')
-                    # print("Model saved in file: %s" % save_path)
-
-                    saver.save(sess, save_path=args.log_dir, global_step=n_epoch)

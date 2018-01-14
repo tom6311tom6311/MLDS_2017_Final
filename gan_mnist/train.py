@@ -14,6 +14,7 @@ from utils import save_image_train, save_image_train_by_digit
 LOAD_FROM_MNIST = False
 
 args = parse_args()
+os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 
 if LOAD_FROM_MNIST:
     mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
@@ -92,18 +93,18 @@ if __name__ == '__main__':
                                                      model.feat_holder: batch_feat,
                                                      model.img_holder: batch_img,
                                                      model.random_feat_holder: random_feat,
-                                                     model.isTrain: True})
+                                                     model.isTrain: (args.train_bn==1)})
 
                 _, G_loss_curr, fake_img = sess.run([model.opt_gen, model.G_loss, model.fake_img],
                                                     feed_dict={model.noise_holder: batch_noise,
                                                                model.feat_holder: batch_feat,
-                                                               model.isTrain: True})
+                                                               model.isTrain: (args.train_bn==1)})
 
                 if (n_epoch % args.info_epoch == 0):
                     print('[n_epoch: %d, D_loss: %f, G_loss: %f]' % (n_epoch, D_loss_curr, G_loss_curr))
                     save_img_fill = sess.run([model.fake_img], feed_dict={model.noise_holder: save_noise_fill,
                                                                 model.feat_holder: save_feat_fill,
-                                                                model.isTrain: False})
+                                                                model.isTrain: (args.test_bn==1)})
                     save_img = save_img_fill[0][0:10, :, :, :]
                     save_image_train_by_digit(n_epoch, save_img, args, generated = True)
                     # label = np.argmax(batch_feat[0])
