@@ -7,7 +7,7 @@ import CaptchaGenerator
 import numpy as np
 from nltk.corpus import words
 
-#nltk.download('words')
+nltk.download('words')
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description="Raw Captcha Image Generator")
